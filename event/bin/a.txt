@@ -1,0 +1,96 @@
+{
+  "url": "http://www.qdmm.com/MMWeb/1670793.aspx",
+  "pattern": "www.qdmm.com/mmweb/*.aspx",
+  "host": "www.qdmm.com",
+  "tpl_version": 0,
+  "site_type": 6,
+  "texing_type": "TEXING_TYPE_RESOURCE",
+  "struct_type": "WIDE_STRUCT",
+  "page_type": "PAGE_TYPE_NEW_KV",
+  "process_type": 1,
+  "page_flag": 0,
+  "has_ad": 1,
+  "backends": "page-analyzer",
+  "page_title": "\n\t重生女修仙传/眷念/最新章节重生女修仙传全文-古典仙侠小说-起点女生网\n",
+  "page_main_title": "",
+  "host_title": "",
+  "page_expire_time": 1415942980,
+  "novel_chapter_type": 4,
+  "cache_control": "CACHE",
+  "blocks": [
+    {
+      "type": "RESOURCE",
+      "xpath": [],
+      "order": "809-1331",
+      "is_main": 1,
+      "main_level": 1,
+      "data_value": {
+        "is_bd_rsc": 0,
+        "items": [
+          {
+            "type": "REAL_RESOURCE",
+            "data_type": "STRUCT",
+            "data_value": {
+              "resource_title": [
+                {
+                  "type": "RESOURCE_TITLE_MAIN",
+                  "data_type": "STRUCT",
+                  "data_value": {
+                    "text": "重生女修仙传",
+                    "link": ""
+                  }
+                }
+              ],
+              "resource_image": {
+                "type": "RESOURCE_BIG_LEFT_IMAGE",
+                "data_type": "STRUCT",
+                "order": 816,
+                "data_value": {
+                  "src": "http://tc2.baidu-1img.cn/timg?pa&amp;quality=100&amp;size=@tpl_size@&amp;sec=1415942684&amp;di=03b326529ab969129b274a0923b84cd6&amp;ref=http%3A%2F%2Fwww%2Eqdmm%2Ecom%2FMMWeb%2F1670793%2Easpx&amp;src=http%3A%2F%2Fimage%2Ecmfu%2Ecom%2Fbooks%2F1670793%2F1670793%2Ejpg",
+                  "href": "http://www.qdmm.com/BookReader/1670793.aspx",
+                  "text": "",
+                  "width": 120,
+                  "height": 150
+                }
+              },
+              "resource_normal": [
+                {
+                  "type": "RESOURCE_KEY_VALUE",
+                  "key": [
+                    {
+                      "text": "演出时间：",
+                      "href": ""
+                    }
+                  ],
+                  "value": [
+                    {
+                      "text": "2014年11月25日",
+                      "href": "http://me.qdmm.com/authorIndex.aspx?id=2088550"
+                    }
+                  ],
+                  "text_size": 12
+                },
+                {
+                  "type": "RESOURCE_KEY_VALUE",
+                  "key": [
+                    {
+                      "text": "演出地点：",
+                      "href": ""
+                    }
+                  ],
+                  "value": [
+                    {
+                      "text": "北京市海淀区西二旗",
+                      "href": ""
+                    }
+                  ],
+                  "text_size": 24
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

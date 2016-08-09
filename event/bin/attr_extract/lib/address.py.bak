@@ -1,0 +1,170 @@
+#!/usr/bin/env python
+# coding=utf-8
+
+# Time-stamp: <2014-09-21 22:33:08 Sunday by work>
+
+# @version 1.0
+# @author liuzhendong01  liuzhendong01@baidu.com  
+
+import json
+import os
+import urllib2
+import sys
+import threading
+import nlp_tool as nlp
+
+class Addr:
+    __instead = 0
+    __level = ""
+    __province = {}
+    __city = {}
+    __county = {}
+    
+    def __init__(self):
+        curr_dir = os.path.split(os.path.realpath(__file__))[0]
+        self.load(curr_dir + "/../../../conf/address_names.utf8.conf")
+
+    def load(self,file_name):
+        f = open(file_name)
+        while True:
+            try:
+                line = f.readline()
+                line = line.strip()
+                if len(line) == 0:
+                    break
+                line = line.decode("utf-8")
+                self.parse_line(line)
+            except:
+               info = sys.exc_info()
+               print >>sys.stderr,info[0],":",info[1],line.encode("utf-8")
+    def check(self):
+        for province in self.__province.keys():
+            if province in self.__city.keys():
+                print "province:",province.encode("utf-8"),"in city",self.__city[province][1].encode("utf-8")
+            if province in self.__county.keys():
+                print "province:",province.encode("utf-8"),"in county",self.__county[province][2].encode("utf-8")
+        for city in self.__city.keys():
+            if city in self.__county.keys():
+                print "city:",city.encode("utf-8"),"in county",self.__county[city][2].encode("utf-8")
+    def parse_line(self,line):
+        if u"[" in line:
+            line = line.split(u"[")[0]
+            return self.parse_line(line)
+        if u"@" in line:
+            return 0 
+        if u"#" in line:
+            self.__level = line[1:].split(u":")[0]
+            return 0 
+        items = line.split(" ")
+        if len(items) != 2:
+            raise SyntaxError("Format Error!!!")
+        name = items[0]
+        value = items[1]
+        values = []
+        for a in value.split(u"|"):
+            if len(a) == 0:
+                continue
+            values.extend(a.split(u"/")) 
+        if self.__level == u"province":
+            if len(values) == 1:
+                self.__province[name] = values
+            else:
+                raise SyntaxError("Format Error!!!")
+        elif self.__level == u"city":
+            if len(values) == 2:
+                self.__city[name] = values
+            else:
+                raise SyntaxError("Format Error!!!")
+        elif self.__level == u"county":
+            if (len(values) - 1)%2 == 0:
+                self.__county[name] = values
+            else:
+                raise SyntaxError("Format Error!!!")
+        else:
+            raise SyntaxError("Format Error!!!")
+    def print_map(self):
+        print json.dumps(self.__province,ensure_ascii=False).encode("utf-8")
+        print json.dumps(self.__city,ensure_ascii=False).encode("utf-8")
+        #print json.dumps(self.__county,ensure_ascii=False).encode("utf-8")
+
+    def add_to_res(self,a, b):
+        if b in a:
+            a[b] = a[b] + 1
+        else:
+            a[b] = 1
+    def parse_address(self,input_str):
+        result = {"province":{},"city":{}}
+        if len(input_str) == 0:
+            return result
+        #print input_str.encode("utf-8")
+        words = nlp.word_seg_post(input_str)
+        #print words
+        #print json.dumps(words,ensure_ascii=False).encode("utf-8")
+        if not "basic" in words:
+            return result
+        words = words["basic"]
+        stop_words = [u"河南",u"河北",u"海南"]
+        for i in range(0,len(words)):
+            if words[i] == u"朝阳":
+                if u"辽宁省" in result["province"]:
+                    self.add_to_res(result["province"],u"辽宁省")
+                else:
+                    self.add_to_res(result["city"],u"北京市")
+                continue
+            if words[i] in stop_words:
+                continue
+            if self.__province.has_key(words[i]):
+                province = words[i] + self.__province[words[i]][0]
+                self.add_to_res(result["province"],province)
+            elif self.__city.has_key(words[i]):
+                #print "city:",words[i].encode("utf-8")
+                city = words[i] + self.__city[words[i]][0]
+                self.add_to_res(result["city"],city)
+            elif self.__county.has_key(words[i]) and len(self.__county[words[i]]) == 3:
+                #print "county:",words[i].encode("utf-8")
+                city = self.__county[words[i]][2]
+                if len(city) > 0:
+                    self.add_to_res(result["city"],city)
+                else:
+                    province = self.__county[words[i]][1]
+                    self.add_to_res(result["province"],province)
+        return result
+ 
+    def parse_city(self,input_str):
+        result = self.parse_address(input_str)
+        print input_str.encode("utf-8")
+        print json.dumps(result,ensure_ascii=False).encode("utf-8")
+        if len(result["city"]) >1 :
+            print >>sys.stderr,"TOO MUCH CITY"
+            return ("","TOO_MUCH_CITY")
+        elif len(result["city"]) == 0:
+            print >>sys.stderr,"NO CITY"
+            return ("","NO_CITY")
+        else:
+            return (result["city"].items()[0][0],"")
+
+
+if __name__ == "__main__":
+    print os.path.split(os.path.realpath(__file__))[0]
+    address = Addr()
+    address.check()
+    addrs = []
+    #addrs.append(u"(北京)人民大会堂")
+    #addrs.append(u"(北京)朝阳区")
+    #addrs.append(u"(北京)朝阳")
+    #addrs.append(u"北京海淀")
+    #addrs.append(u"海淀")
+    #addrs.append(u"详见内页")
+    #addrs.append(u"河南省洛阳")
+    addrs.append(u"河北）裕华区 青园街塔南路交口北行100米路东“登瀛楼酒店”地下")
+    for addr in addrs:
+        result = address.parse_address(addr)
+        print json.dumps(result,ensure_ascii=False).encode("utf-8")
+        city = address.parse_city(addr)
+        print "CITY:",city[0].encode("utf-8")
+        print "CITY_ERROR_INFO:",city[1].encode("utf-8")
+
+
+
+
+

@@ -1,0 +1,94 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Time-stamp: <2014-11-14 22:33:08 Friday by work>
+# @version 1.0
+# @author liuzhendong01  liuzhendong01@baidu.com  
+import sys
+import os
+curr_dir = os.path.split(os.path.realpath(__file__))[0]
+sys.path.append(curr_dir + "/lib/geo")
+#sys.path.append(curr_dir + "/lib")
+
+
+import json
+from optparse import OptionParser
+import traceback
+
+import pajson_analyze_module
+import block_label_module
+import field_label_module
+import attr_extract_module
+
+import event_page_identify
+
+import global_obj
+
+import time
+from FrameLog import *  
+
+class ExExtractor:
+    def __init__(self,filter_mode):
+        LOG_NOTICE("hello %s","world");
+        self.__block_label_module = block_label_module.BlockLabelModule()
+        self.__field_label_module = field_label_module.FieldLabelModule()
+        self.__attr_extract_module = attr_extract_module.EventAttrExtractModule()
+        self.__page_identify = event_page_identify.EventPageIdentify()
+        self.filter_mode = filter_mode
+
+    def process(self,origin_data):
+        global time_count
+        pajson_parse_start = time.time()
+        page_json = pajson_analyze_module.process(origin_data)
+        #print "AfterAnalyze:",json.dumps(page_json,ensure_ascii=False).encode("utf-8")
+        if self.filter_mode and not self.__page_identify.identify_page(page_json):
+            return page_json
+        page_identify_end = time.time()
+        #time_count["page_identify"] = time_count["page_identify"] + (page_identify_end - page_identify_start)
+        
+        block_label_start = time.time()
+        self.__block_label_module.process(page_json)
+        block_label_end = time.time()
+        time_count["block_label"] = time_count["block_label"] + (block_label_end - block_label_start)
+
+        field_label_start = time.time()
+        self.__field_label_module.process(page_json)
+        field_label_end = time.time()
+        time_count["field_label"] = time_count["field_label"] + (field_label_end - field_label_start)
+
+        attr_extract_start = time.time()  
+        self.__attr_extract_module.process(page_json)
+        attr_extract_end = time.time()  
+        time_count["attr_extract"] = time_count["attr_extract"] + (attr_extract_end - attr_extract_start)
+        return page_json
+    
+time_count = {"pajson_parse":0, "page_identify":0, "block_label":0, "field_label":0, "attr_extract":0}
+
+if __name__ == "__main__":
+    ex_extractor = ExExtractor(False)
+    while True:
+        try:
+            line = sys.stdin.readline()
+            if not line:
+                break
+            line = line.strip()
+            if len(line) == 0 :
+                continue
+            items = line.split("\t")
+            if len(items) !=2 :
+                continue
+            url = items[0]
+            page_data = items[1]
+            res_json = ex_extractor.process(page_data)
+            #res_json["blocks"] = []
+            if "event_block_num" in res_json and res_json["event_block_num"] > 0:
+                print "YES"+"\t" + url + "\t" + json.dumps(res_json,ensure_ascii=False).encode("utf-8")
+                #print "YES"+"\t" + url
+            else:
+                print "NO"+"\t" + url + "\t" + json.dumps(res_json,ensure_ascii=False).encode("utf-8")
+                #print "NO" + "\t" + url
+        except:
+            print "ERROR" +  "\t" + line
+            print traceback.print_exc()
+
+
+
